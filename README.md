@@ -1,3 +1,3 @@
 # Instamate
 
-Simple Instagram photo loading app on AngularJS
+Simple displaying your info and recent photos from Instagram with AngularJS
