@@ -2,9 +2,10 @@
 <html lang="en" ng-app="MyApp">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>Instamate</title>
 	
 	<link href="https://fonts.googleapis.com/css?family=Slabo+27px" rel="stylesheet">
+	<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link rel="stylesheet" type="text/css" href="style.css">
 
 	
@@ -15,9 +16,24 @@
 	<script type="text/javascript">
 
 
-	var client_id = '';
+	var client_id = 'YOUR_CLIENT_ID_HERE';
 
 	angular.module('MyApp', ['ui.router'])
+	.run(function($rootScope, $location, $state, InstagramAPI) {
+	    $rootScope.$on( '$stateChangeStart', function(e, toState  , toParams, fromState, fromParams) {
+	        var isLogin = toState.name === "home";
+
+	        if(isLogin){
+	           return; // no need to redirect 
+	        }
+	        var userInfo = InstagramAPI.access_token();
+
+	        if(fromState.name === '' && toState.name === 'profile') {
+	            e.preventDefault(); // stop current execution
+	            $state.go('home'); // go to home page
+	        }
+	    });
+	})
 	.config(function ($stateProvider, $urlRouterProvider, $locationProvider) {
 		//$locationProvider.html5Mode(true);
 
@@ -34,9 +50,9 @@
             templateUrl: 'home.html',
             controller: 'HomeCtrl'
         })
-        .state('photos', {
-            url: '/photos',
-            templateUrl: 'photos.html',
+        .state('profile', {
+            url: '/profile',
+            templateUrl: 'profile.html',
             controller: 'HomeCtrl'
         })
   	})
@@ -57,14 +73,26 @@
 	        },
 	        fetchPhotos : function(callback) {
 		        var endpoint = 'https://api.instagram.com/v1';
-		        endpoint += '/users/self/media/liked';
+		        endpoint += '/users/self/media/recent';
 		        endpoint += '/?count=30';
 		        endpoint += '&callback=JSON_CALLBACK';
 		        endpoint += '&access_token=' + this._access_token;
 		        $http.jsonp(endpoint)
 		        .success(function(response) {
 		          callback(response.data);
-		          console.log(response)
+		        })
+		        .error(function(xhr, status, err) {
+		          console.error(status, err);
+		        })
+		    },
+		    fetchInfo : function(callback) {
+		        var endpoint = 'https://api.instagram.com/v1';
+		        endpoint += '/users/self/';
+		        endpoint += '?callback=JSON_CALLBACK';
+		        endpoint += '&access_token=' + this._access_token;
+		        $http.jsonp(endpoint)
+		        .success(function(response) {
+		          callback(response.data);
 		        })
 		        .error(function(xhr, status, err) {
 		          console.error(status, err);
@@ -74,9 +102,12 @@
 
 	    $rootScope.$on("igAccessTokenObtained", function (evt, args) {
 	        service.access_token(args.access_token);
+	        service.fetchInfo(function(data) {
+		      $rootScope.info = data;
+		    });
 	        service.fetchPhotos(function(data) {
 		      $rootScope.pics = data;
-		      $state.go('photos')
+		      $state.go('profile')
 		    });
 	    });
 
@@ -90,7 +121,9 @@
 	    $window.close();
 	}])
 	.controller('HomeCtrl', ['$scope', '$rootScope', '$location', 'InstagramAPI', function($scope, $rootScope, $location, InstagramAPI){
-
+		$scope.$on("$stateChangeError", function (event, toState, toParams, fromState, fromParams, error) {
+		    $state.go("home");
+		});
 	 $scope.auth = function() {
 	 	InstagramAPI.login()
 	 }
@@ -101,6 +134,6 @@
 	</script>
 </head>
 <body>
-	<ui-view class="content"></ui-view>
+	<ui-view class="content" id="stylus-trackbar"></ui-view>
 </body>
 </html>

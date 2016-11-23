@@ -1,0 +1,16 @@
+
+<div class="info">
+	<img ng-src="{{info.profile_picture}}">
+	<h1>{{info.full_name}}</h1>
+	<p>{{info.bio}}</p>
+
+	<div class="numbers">
+		<h1><i class="fa fa-users" aria-hidden="true"></i>{{info.counts.followed_by}}</h1>
+		<h1><i class="fa fa-user" aria-hidden="true"></i>{{info.counts.follows}}</h1>
+		<h1><i class="fa fa-picture-o" aria-hidden="true"></i>{{info.counts.media}}</h1>
+	</div>
+</div>
+
+<div class="wrapper">
+	<img ng-src="{{img.images.thumbnail.url}}" ng-repeat="img in pics">
+</div>
